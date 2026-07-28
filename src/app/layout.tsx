@@ -1,4 +1,5 @@
 import React from 'react';
+import './globals.css';
 
 export const metadata = {
   title: 'Dispatch Desk V2',
@@ -16,3 +17,4 @@ export default function RootLayout({
     </html>
   );
 }
+
