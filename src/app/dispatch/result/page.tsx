@@ -1,6 +1,7 @@
 import Link from "next/link";
 import WeatherPanel from "@/components/weather/WeatherPanel";
 import RouteMap from "@/components/dispatch/RouteMap";
+import { getDispatchById } from "@/lib/data/dispatch-queries";
 
 export const dynamic = "force-dynamic";
 
@@ -10,9 +11,32 @@ export default async function DispatchResultPage({
   searchParams: Promise<{ dep?: string; arr?: string; id?: string }>;
 }) {
   const params = await searchParams;
-  const depIcao = params.dep || "EDDF";
-  const arrIcao = params.arr || "LFPG";
   const dispatchId = params.id;
+
+  let depIcao = params.dep || "EDDF";
+  let arrIcao = params.arr || "LFPG";
+  let aircraft = "Boeing 777-300ER";
+  let distance = 4500;
+  let blockTime = 9.5;
+  let totalFuel = 75000;
+  let cruiseAlt = 35000;
+  let takeoffWeight = 250000;
+  let routeString = `${depIcao} DCT ${arrIcao}`;
+
+  if (dispatchId) {
+    const dispatch = await getDispatchById(dispatchId);
+    if (dispatch) {
+      depIcao = dispatch.dep_icao;
+      arrIcao = dispatch.arr_icao;
+      aircraft = dispatch.aircraft_model;
+      distance = dispatch.distance_nm;
+      blockTime = dispatch.block_time_hours;
+      totalFuel = dispatch.total_fuel_kg;
+      cruiseAlt = dispatch.cruise_alt_ft;
+      takeoffWeight = dispatch.takeoff_weight_kg;
+      routeString = dispatch.route_string;
+    }
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-6 flex flex-col items-center py-12">
@@ -35,6 +59,34 @@ export default async function DispatchResultPage({
           <RouteMap depIcao={depIcao} arrIcao={arrIcao} />
         </div>
 
+        {/* Core Metric Cards Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
+            <span className="text-xs text-slate-400 uppercase font-mono">Aircraft</span>
+            <p className="text-base font-bold text-white mt-1">{aircraft}</p>
+          </div>
+          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
+            <span className="text-xs text-slate-400 uppercase font-mono">Distance</span>
+            <p className="text-lg font-bold text-white mt-1">{distance.toLocaleString()} NM</p>
+          </div>
+          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
+            <span className="text-xs text-slate-400 uppercase font-mono">Cruise Alt</span>
+            <p className="text-lg font-bold text-white mt-1">FL{Math.round(cruiseAlt / 100)}</p>
+          </div>
+          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
+            <span className="text-xs text-slate-400 uppercase font-mono">Block Time</span>
+            <p className="text-lg font-bold text-white mt-1">{blockTime} hrs</p>
+          </div>
+          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
+            <span className="text-xs text-slate-400 uppercase font-mono">Total Fuel</span>
+            <p className="text-lg font-bold text-amber-400 mt-1">{totalFuel.toLocaleString()} kg</p>
+          </div>
+          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
+            <span className="text-xs text-slate-400 uppercase font-mono">Takeoff Weight</span>
+            <p className="text-lg font-bold text-white mt-1">{takeoffWeight.toLocaleString()} kg</p>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <WeatherPanel icao={depIcao} label="Departure WX" />
           <WeatherPanel icao={arrIcao} label="Arrival WX" />
@@ -42,7 +94,7 @@ export default async function DispatchResultPage({
 
         <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 space-y-2">
           <span className="text-xs text-slate-400 uppercase font-mono">ATC Route String</span>
-          <p className="font-mono text-sm text-blue-300">{depIcao} DCT {arrIcao}</p>
+          <p className="font-mono text-sm text-blue-300 break-all">{routeString}</p>
         </div>
 
         <div className="flex flex-col gap-3 pt-4">
