@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { generateKml } from "@/lib/export/kml-generator";
+import { generateKml } from "@/lib/export/generate-kml";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { searchParams } = new URL(req.url);

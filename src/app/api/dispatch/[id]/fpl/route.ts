@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { generateFplXml } from "@/lib/export/fpl-generator";
+import { generateFplXml } from "@/lib/export/generate-fpl";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { searchParams } = new URL(req.url);
