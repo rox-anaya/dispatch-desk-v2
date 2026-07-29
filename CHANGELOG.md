@@ -1,42 +1,37 @@
 # Changelog
 
-## Module 3 — Authentication
-**Date:** 2026-07-27
+## Module 4 — Aviation Data Import
+**Date:** 2026-07-28
 
 ### Added
-- `middleware.ts` — route protection for /dashboard, /admin, /airline
-- `src/lib/supabase/middleware.ts` — session refresh helper
-- `src/lib/auth/actions.ts` — signUp, signIn, signOut server actions
-- `src/lib/auth/get-current-profile.ts` — getCurrentProfile, getAirlineRole helpers
-- `src/components/auth/RequireRole.tsx` — server-side role gating component
-- `src/app/(auth)/login/page.tsx` — login page
-- `src/app/(auth)/signup/page.tsx` — signup page
-- `src/app/auth/callback/route.ts` — email confirmation handler
-- `src/app/(dashboard)/dashboard/page.tsx` — example protected page with role-based rendering
+- `src/lib/supabase/admin.ts` — service-role client for privileged import scripts
+- `scripts/data/aircraft-seed.json` — curated list of ~20 common airliner types
+- `scripts/import/import-aircraft.ts`
+- `scripts/import/import-airports.ts`
+- `scripts/import/import-runways.ts`
+- `scripts/import/import-navaids.ts`
+- `scripts/import/import-all.ts` — orchestrator
+- `supabase/migrations/006_module4_constraints.sql` — unique constraints for idempotent upserts
 
 ### Environment
-- Added `NEXT_PUBLIC_SITE_URL` (required for email confirmation redirect)
+- Added `SUPABASE_SERVICE_ROLE_KEY` (server-only, never exposed to browser)
 
-### Notes
-- No new packages or database migrations this module
-- Email/password auth only — no OAuth providers yet
-- No "forgot password" flow yet
+### Dev Dependencies (need manual install — see INSTALL_INSTRUCTIONS.md)
+- `csv-parse`, `tsx`, `dotenv`
+
+### Scope Note
+- Airways and SID/STAR procedures intentionally deferred to a future module — see MODULE_REPORT.md
 
 ---
+
+## Module 3 — Authentication
+**Date:** 2026-07-27
+Sign-up/sign-in/sign-out, session middleware, route protection, role-based gating.
 
 ## Module 2 — Database Schema
 **Date:** 2026-07-27
-
-### Added
-- `supabase/migrations/001_profiles.sql` through `005_rls_policies.sql`
-- `src/types/database.ts`
-
----
+Profiles/roles, airlines, aviation reference tables, dispatches, flight_history, RLS.
 
 ## Module 1 — Project Initialization & Environment Setup
 **Date:** 2026-07-27
-
-### Added
-- `next.config.ts`, `public/manifest.json`
-- `src/lib/supabase/client.ts`, `src/lib/supabase/server.ts`
-- `.env.local.example`
+Next.js 15, Tailwind, shadcn/ui, Supabase clients, PWA config, GitHub → Vercel pipeline.

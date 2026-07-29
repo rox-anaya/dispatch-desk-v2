@@ -1,59 +1,75 @@
-# Module 3 Report — Authentication
+# Module 4 Report — Aviation Data Import
 
 ## What Was Built
-- Supabase Auth wired into the Next.js app: sign-up, sign-in, sign-out
-- `middleware.ts` — protects `/dashboard`, `/admin`, `/airline` routes; refreshes session on every request
-- Server actions (`signUp`, `signIn`, `signOut`) instead of client-side API calls
-- `getCurrentProfile()` / `getAirlineRole()` — central helpers for "who is this and what can they do"
-- `RequireRole` — server component that gates content by global role
-- Email confirmation callback route
-- Login/signup pages and an example protected dashboard page demonstrating role-based rendering
+- Import scripts to populate Module 2's empty reference tables: `aircraft`, `airports`, `runways`, `navaids`
+- A curated JSON seed file of ~20 common airliner types (fuel/payload/cruise specs)
+- A service-role Supabase admin client for privileged, RLS-bypassing import jobs
+- A unique-constraint migration so imports are safely re-runnable (upsert, not insert)
+- An orchestrator script (`import-all.ts`) to run everything in the correct order
+
+## Scope Decision — Airways & SID/STAR Deferred
+This module intentionally does **not** import airways or SID/STAR procedures. Reasoning:
+- Airports/runways/navaids all come from one clean, reliable open dataset (OurAirports, public domain).
+- Airways and SIDs/STARs don't have an equivalent simple CSV source — they typically come from aeronautical nav databases (e.g. X-Plane's `earth_awy.dat`/`earth_fix.dat` format, or commercial providers like Navigraph), which need a different, more complex parser and raise their own data-currency/licensing questions worth a dedicated module rather than rushing into this one.
+- Following the "one module, one verified piece at a time" principle: airports/aircraft/runways/navaids are independently useful right now (dispatch calculations don't strictly require airway data), so shipping this now and tackling airways/procedures as their own module is lower-risk than one large combined import.
+
+**Recommendation:** treat Airways/SIDs/STARs as its own module later (proposed as Module 4B or folded into Module 5 planning) once we've decided on a nav-data source.
 
 ## Why Designed This Way
 
-**Server Actions, not client-side fetch to API routes**
-Next.js Server Actions run on the server and set auth cookies directly in the response. A client-side `fetch()` to a custom `/api/login` route can end up with the session cookie not syncing properly between client and server renders — a very common Next.js + Supabase bug. Server Actions avoid that whole class of problem.
+**Service-role client for imports, not the app's normal Supabase client**
+Module 2's RLS policies only let `system_admin` write to reference tables — correct for the running app, but these import scripts run standalone from a terminal with no logged-in user session to check against. The service role key bypasses RLS entirely by design, so it's isolated into its own `admin.ts` file with a loud comment: never import this into browser-facing code.
 
-**Middleware split into two files**
-`src/lib/supabase/middleware.ts` only refreshes the session token. `middleware.ts` (root) only decides which routes require auth and redirects if missing. Keeping "refresh session" and "enforce access" separate means either can be changed (e.g., adding a new protected route) without touching the trickier cookie-handling code.
+**CSV download is a separate manual step, not automated in the script**
+The scripts don't fetch the CSVs themselves. This keeps the import scripts deterministic and offline-repeatable — you control exactly which dataset snapshot you're importing, and re-running the script later doesn't silently pull new data mid-way through testing.
 
-**Route protection list is one array, not scattered checks**
-`PROTECTED_PREFIXES` in `middleware.ts` is the single place that defines what's gated. As the app grows to 15+ more modules, anyone (including future-you, or ChatGPT in another session) can read one file to know what's protected — rather than hunting through every page for an `if (!user) redirect()` check.
+**Aircraft data hand-curated, not scraped**
+Unlike airports, there's no single trustworthy open dataset with fuel burn/payload/cruise figures per aircraft type. A short, correct, manually-verified list of ~20 relevant types is safer than importing bulk data of uncertain accuracy — and it's easy to extend by just adding rows to `aircraft-seed.json`.
 
-**RequireRole is a server component, not a client hook**
-A `useRole()` client-side hook can be bypassed by anyone who disables JS or inspects/edits browser state — it would only be a UI convenience, not real security (the real security is still RLS from Module 2). By making `RequireRole` a server component, gated content is never sent to the browser at all if the role doesn't match, which is both more secure and avoids a "flash of admin content" bug.
+**Filtering airport types on import**
+OurAirports has ~80,000 entries including closed airports and balloonports. Filtering to `large_airport`/`medium_airport`/`small_airport` keeps the table relevant to what Infinite Flight pilots would actually dispatch to.
 
-**Global role vs. airline role checked separately**
-`getCurrentProfile()` returns the global role (from Module 2's `profiles.role`). `getAirlineRole(airlineId)` is a separate lookup for the airline-specific role, matching the Module 2 decision to keep these two concepts independent.
+**Upsert with unique constraints, not plain insert**
+Re-running an import script (say, after downloading an updated CSV) shouldn't create duplicate rows. Migration 006 adds unique constraints on `runways(airport_id, ident)` and `navaids(ident, type)` specifically to make upserts possible.
 
-## Packages Installed
-None new — this module only uses `@supabase/ssr` and `@supabase/supabase-js`, already installed in Module 1.
+## Packages Installed (need to be added — see Install Instructions)
+- `csv-parse` — robust CSV parsing (handles quoted fields with embedded commas, which a naive `.split(",")` would break on)
+- `tsx` — runs TypeScript scripts directly without a separate compile step
+- `dotenv` — loads `.env.local` into these standalone scripts (Next.js does this automatically for the app itself, but standalone scripts need it explicitly)
 
 ## Database Changes
-None — Module 3 uses the `profiles` and `airline_members` tables from Module 2 as-is. No new migrations.
+`supabase/migrations/006_module4_constraints.sql`:
+- Unique constraint on `runways(airport_id, ident)`
+- Unique constraint on `navaids(ident, type)`
 
 ## Environment Variables
-One new variable:
+One new variable, **server-only, never prefixed `NEXT_PUBLIC_`:**
 ```
-NEXT_PUBLIC_SITE_URL=https://your-deployed-url.vercel.app
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 ```
-Used for the email confirmation redirect link. Set this in both `.env.local` (use `http://localhost:3000` or your Codespaces forwarded URL for local testing) and in Vercel's environment variables (use your real production URL).
+Find it in Supabase Dashboard → Settings → API → service_role key.
+**Never commit this or expose it to the browser** — it bypasses all RLS.
 
 ## Testing Steps
-1. Add `NEXT_PUBLIC_SITE_URL` to your env vars (see above).
-2. Go to `/signup`, create an account with a real email you can check.
-3. Confirm a row appears in Supabase Auth → Users, and a matching row in `profiles` (auto-created by the Module 2 trigger).
-4. Click the confirmation link in your email — you should land on `/dashboard` with a session.
-5. Try visiting `/dashboard` in an incognito/private tab (no session) — should redirect to `/login?redirectTo=/dashboard`.
-6. Log in on that private tab — should redirect back to `/dashboard` automatically.
-7. Click "Sign out" — should return you to `/login`, and `/dashboard` should redirect again if revisited.
-8. Manually set your test user's `profiles.role` to `system_admin` in Supabase Table Editor, refresh `/dashboard` — the "System admin tools" block should now appear.
+1. Add `SUPABASE_SERVICE_ROLE_KEY` to `.env.local`.
+2. Install the new dev dependencies (see Install Instructions).
+3. Run migration `006_module4_constraints.sql` in Supabase SQL Editor.
+4. Download the datasets:
+   ```
+      curl -o scripts/data/airports.csv https://davidmegginson.github.io/ourairports-data/airports.csv
+         curl -o scripts/data/runways.csv https://davidmegginson.github.io/ourairports-data/runways.csv
+            curl -o scripts/data/navaids.csv https://davidmegginson.github.io/ourairports-data/navaids.csv
+               ```
+               5. Run `npx tsx scripts/import/import-all.ts` and watch for errors in the console.
+               6. In Supabase Table Editor, spot-check: search `airports` for a familiar ICAO (e.g. `KJFK`), confirm `runways` has entries linked to it, confirm `aircraft` has your 20 seeded types, confirm `navaids` has some VOR entries near that airport.
+               7. Re-run the import a second time — row counts shouldn't double (proves the upsert/unique-constraint setup works).
 
-## What's Next
-**Module 4: Aviation Data Import** — populating the empty reference tables from Module 2 (airports, aircraft, navaids, airways, SIDs/STARs, runways) from an open aviation dataset, plus the import pipeline itself (likely a Supabase Edge Function or a one-time seed script).
+               ## What's Next
+               **Module 5: Flight Dispatch Engine** — route planning, fuel/payload/cruise-altitude/flight-time/distance calculations using the aircraft and airport data now in place.
 
-## Technical Debt / Notes
-- Login/signup forms use plain Tailwind-styled inputs, not shadcn/ui `<Input>`/`<Button>` components — this was intentional so the files work standalone without depending on exactly which shadcn components you've generated locally. Safe to swap in shadcn components later for visual consistency once your design references are in.
-- No "forgot password" flow yet — worth adding alongside Module 9 (pilot dashboard) or sooner if needed.
-- No rate-limiting on sign-in attempts yet — worth revisiting in the security hardening pass (Module 17).
-- OAuth (Google/Discord sign-in) not included — email/password only for now; can be added later with minimal changes to the actions file.
+               ## Technical Debt / Notes
+               - Airways, SIDs, and STARs are not imported — deferred to a future module pending a nav-data source decision (see Scope Decision above).
+               - `navaids(ident, type)` unique constraint is a simplification — in rare real-world cases two different navaids share both an ident and type in different regions; this edge case is accepted for now.
+               - Aircraft seed list covers ~20 common types; expand `aircraft-seed.json` as needed for less common types your pilots request.
+               - No scheduled/automatic re-import — this is a manual, on-demand script for now. Worth revisiting once Edge Functions / background jobs are introduced later in the roadmap.
+               

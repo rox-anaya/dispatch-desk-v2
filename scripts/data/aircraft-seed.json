@@ -1,0 +1,32 @@
+[
+  {
+    "icao_code": "A320",
+    "model_name": "Airbus A320-200",
+    "max_range_nm": 3300,
+    "service_ceiling_ft": 39000
+  },
+  {
+    "icao_code": "B738",
+    "model_name": "Boeing 737-800",
+    "max_range_nm": 2935,
+    "service_ceiling_ft": 41000
+  },
+  {
+    "icao_code": "B77W",
+    "model_name": "Boeing 777-300ER",
+    "max_range_nm": 7370,
+    "service_ceiling_ft": 43100
+  },
+  {
+    "icao_code": "A359",
+    "model_name": "Airbus A350-900",
+    "max_range_nm": 8100,
+    "service_ceiling_ft": 43100
+  },
+  {
+    "icao_code": "C172",
+    "model_name": "Cessna 172 Skyhawk",
+    "max_range_nm": 640,
+    "service_ceiling_ft": 14000
+  }
+]

@@ -1,0 +1,202 @@
+[
+  {
+    "icao_type": "A320",
+    "name": "Airbus A320neo",
+    "manufacturer": "Airbus",
+    "max_fuel_kg": 18730,
+    "max_payload_kg": 16600,
+    "typical_cruise_speed_kt": 447,
+    "typical_cruise_altitude_ft": 39000,
+    "fuel_burn_kg_per_hr": 2400
+  },
+  {
+    "icao_type": "A321",
+    "name": "Airbus A321neo",
+    "manufacturer": "Airbus",
+    "max_fuel_kg": 23700,
+    "max_payload_kg": 20000,
+    "typical_cruise_speed_kt": 447,
+    "typical_cruise_altitude_ft": 39000,
+    "fuel_burn_kg_per_hr": 2650
+  },
+  {
+    "icao_type": "A339",
+    "name": "Airbus A330-900neo",
+    "manufacturer": "Airbus",
+    "max_fuel_kg": 111200,
+    "max_payload_kg": 45700,
+    "typical_cruise_speed_kt": 470,
+    "typical_cruise_altitude_ft": 41000,
+    "fuel_burn_kg_per_hr": 5800
+  },
+  {
+    "icao_type": "A359",
+    "name": "Airbus A350-900",
+    "manufacturer": "Airbus",
+    "max_fuel_kg": 138000,
+    "max_payload_kg": 53000,
+    "typical_cruise_speed_kt": 488,
+    "typical_cruise_altitude_ft": 41000,
+    "fuel_burn_kg_per_hr": 6400
+  },
+  {
+    "icao_type": "A388",
+    "name": "Airbus A380-800",
+    "manufacturer": "Airbus",
+    "max_fuel_kg": 253983,
+    "max_payload_kg": 84000,
+    "typical_cruise_speed_kt": 488,
+    "typical_cruise_altitude_ft": 43000,
+    "fuel_burn_kg_per_hr": 11500
+  },
+  {
+    "icao_type": "B738",
+    "name": "Boeing 737-800",
+    "manufacturer": "Boeing",
+    "max_fuel_kg": 20894,
+    "max_payload_kg": 18700,
+    "typical_cruise_speed_kt": 453,
+    "typical_cruise_altitude_ft": 39000,
+    "fuel_burn_kg_per_hr": 2500
+  },
+  {
+    "icao_type": "B39M",
+    "name": "Boeing 737 MAX 9",
+    "manufacturer": "Boeing",
+    "max_fuel_kg": 23823,
+    "max_payload_kg": 19000,
+    "typical_cruise_speed_kt": 453,
+    "typical_cruise_altitude_ft": 41000,
+    "fuel_burn_kg_per_hr": 2450
+  },
+  {
+    "icao_type": "B788",
+    "name": "Boeing 787-8",
+    "manufacturer": "Boeing",
+    "max_fuel_kg": 101323,
+    "max_payload_kg": 35000,
+    "typical_cruise_speed_kt": 488,
+    "typical_cruise_altitude_ft": 43000,
+    "fuel_burn_kg_per_hr": 5400
+  },
+  {
+    "icao_type": "B789",
+    "name": "Boeing 787-9",
+    "manufacturer": "Boeing",
+    "max_fuel_kg": 126206,
+    "max_payload_kg": 42000,
+    "typical_cruise_speed_kt": 488,
+    "typical_cruise_altitude_ft": 43000,
+    "fuel_burn_kg_per_hr": 5900
+  },
+  {
+    "icao_type": "B77W",
+    "name": "Boeing 777-300ER",
+    "manufacturer": "Boeing",
+    "max_fuel_kg": 145538,
+    "max_payload_kg": 64000,
+    "typical_cruise_speed_kt": 490,
+    "typical_cruise_altitude_ft": 43000,
+    "fuel_burn_kg_per_hr": 7600
+  },
+  {
+    "icao_type": "B744",
+    "name": "Boeing 747-400",
+    "manufacturer": "Boeing",
+    "max_fuel_kg": 173231,
+    "max_payload_kg": 68000,
+    "typical_cruise_speed_kt": 490,
+    "typical_cruise_altitude_ft": 43000,
+    "fuel_burn_kg_per_hr": 10500
+  },
+  {
+    "icao_type": "B748",
+    "name": "Boeing 747-8",
+    "manufacturer": "Boeing",
+    "max_fuel_kg": 226117,
+    "max_payload_kg": 70000,
+    "typical_cruise_speed_kt": 490,
+    "typical_cruise_altitude_ft": 43000,
+    "fuel_burn_kg_per_hr": 10800
+  },
+  {
+    "icao_type": "B763",
+    "name": "Boeing 767-300ER",
+    "manufacturer": "Boeing",
+    "max_fuel_kg": 63216,
+    "max_payload_kg": 40000,
+    "typical_cruise_speed_kt": 459,
+    "typical_cruise_altitude_ft": 41000,
+    "fuel_burn_kg_per_hr": 5200
+  },
+  {
+    "icao_type": "CRJ9",
+    "name": "Bombardier CRJ-900",
+    "manufacturer": "Bombardier",
+    "max_fuel_kg": 8000,
+    "max_payload_kg": 9000,
+    "typical_cruise_speed_kt": 447,
+    "typical_cruise_altitude_ft": 37000,
+    "fuel_burn_kg_per_hr": 1450
+  },
+  {
+    "icao_type": "E170",
+    "name": "Embraer E170",
+    "manufacturer": "Embraer",
+    "max_fuel_kg": 9557,
+    "max_payload_kg": 8600,
+    "typical_cruise_speed_kt": 447,
+    "typical_cruise_altitude_ft": 37000,
+    "fuel_burn_kg_per_hr": 1400
+  },
+  {
+    "icao_type": "E175",
+    "name": "Embraer E175",
+    "manufacturer": "Embraer",
+    "max_fuel_kg": 9557,
+    "max_payload_kg": 9500,
+    "typical_cruise_speed_kt": 447,
+    "typical_cruise_altitude_ft": 39000,
+    "fuel_burn_kg_per_hr": 1500
+  },
+  {
+    "icao_type": "E190",
+    "name": "Embraer E190",
+    "manufacturer": "Embraer",
+    "max_fuel_kg": 12971,
+    "max_payload_kg": 12500,
+    "typical_cruise_speed_kt": 447,
+    "typical_cruise_altitude_ft": 39000,
+    "fuel_burn_kg_per_hr": 1900
+  },
+  {
+    "icao_type": "AT76",
+    "name": "ATR 72-600",
+    "manufacturer": "ATR",
+    "max_fuel_kg": 5000,
+    "max_payload_kg": 7500,
+    "typical_cruise_speed_kt": 275,
+    "typical_cruise_altitude_ft": 25000,
+    "fuel_burn_kg_per_hr": 550
+  },
+  {
+    "icao_type": "DH8D",
+    "name": "De Havilland Dash 8-400",
+    "manufacturer": "De Havilland Canada",
+    "max_fuel_kg": 5221,
+    "max_payload_kg": 8000,
+    "typical_cruise_speed_kt": 360,
+    "typical_cruise_altitude_ft": 25000,
+    "fuel_burn_kg_per_hr": 900
+  },
+  {
+    "icao_type": "MD11",
+    "name": "McDonnell Douglas MD-11F",
+    "manufacturer": "McDonnell Douglas",
+    "max_fuel_kg": 117400,
+    "max_payload_kg": 90000,
+    "typical_cruise_speed_kt": 478,
+    "typical_cruise_altitude_ft": 41000,
+    "fuel_burn_kg_per_hr": 7900
+  }
+]

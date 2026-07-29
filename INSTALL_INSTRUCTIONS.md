@@ -1,55 +1,71 @@
-# Module 3 — Setup Instructions
+# Module 4 — Setup Instructions
 
 ## Steps
 
-1. Extract this ZIP.
-
-2. Copy these files/folders into your project, preserving paths exactly:
+1. Extract this ZIP. Copy these into your project, preserving paths:
    ```
-      middleware.ts                                  → project root (new file)
-         src/lib/supabase/middleware.ts                 → new file
-            src/lib/auth/actions.ts                        → new file
-               src/lib/auth/get-current-profile.ts            → new file
-                  src/components/auth/RequireRole.tsx            → new file
-                     src/app/(auth)/login/page.tsx                  → new file
-                        src/app/(auth)/signup/page.tsx                 → new file
-                           src/app/auth/callback/route.ts                 → new file
-                              src/app/(dashboard)/dashboard/page.tsx          → new file
-                                 ```
-                                    Note: folders in parentheses like `(auth)` and `(dashboard)` are Next.js
-                                       "route groups" — they organize files without adding to the URL. `/login`
-                                          works even though the folder is `(auth)/login`.
+      src/lib/supabase/admin.ts                    → new file
+         scripts/data/aircraft-seed.json               → new file
+            scripts/import/import-aircraft.ts             → new file
+               scripts/import/import-airports.ts             → new file
+                  scripts/import/import-runways.ts              → new file
+                     scripts/import/import-navaids.ts              → new file
+                        scripts/import/import-all.ts                  → new file
+                           supabase/migrations/006_module4_constraints.sql → new file
+                              ```
 
-                                          3. Add the new environment variable to `.env.local`:
-                                             ```
-                                                NEXT_PUBLIC_SITE_URL=http://localhost:3000
-                                                   ```
-                                                      (Use your actual Codespaces forwarded URL if testing there instead of localhost.
-                                                         Update to your real Vercel URL in production env vars.)
+                              2. Install new dev dependencies (in Codespaces terminal):
+                                 ```bash
+                                    npm install --save-dev csv-parse tsx dotenv
+                                       ```
 
-                                                         4. Also add `NEXT_PUBLIC_SITE_URL` in your Vercel project's Environment Variables
-                                                            (production value = your real deployed URL).
+                                       3. Add to `.env.local` (get the key from Supabase Dashboard → Settings → API → service_role):
+                                          ```
+                                             SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
+                                                ```
+                                                   **Do not** add this to Vercel's environment variables unless you specifically need
+                                                      server-side admin actions in production later — for now it's only used by scripts
+                                                         run manually from your terminal, never by the deployed app itself.
 
-                                                            5. In Supabase Dashboard → Authentication → URL Configuration, add your site URL
-                                                               and `/auth/callback` path to the allowed redirect URLs list.
+                                                         4. Run the new migration in Supabase SQL Editor:
+                                                            `supabase/migrations/006_module4_constraints.sql`
 
-                                                               6. Run through the **Testing Steps** in `MODULE_REPORT.md` before moving to Module 4.
+                                                            5. Download the OurAirports datasets into `scripts/data/`:
+                                                               ```bash
+                                                                  curl -o scripts/data/airports.csv https://davidmegginson.github.io/ourairports-data/airports.csv
+                                                                     curl -o scripts/data/runways.csv https://davidmegginson.github.io/ourairports-data/runways.csv
+                                                                        curl -o scripts/data/navaids.csv https://davidmegginson.github.io/ourairports-data/navaids.csv
+                                                                           ```
 
-                                                               ## Files in this ZIP
-                                                               ```
-                                                               dispatch-desk-v2/
-                                                               ├── middleware.ts
-                                                               └── src/
-                                                                   ├── app/
-                                                                       │   ├── (auth)/login/page.tsx
-                                                                           │   ├── (auth)/signup/page.tsx
-                                                                               │   ├── (dashboard)/dashboard/page.tsx
-                                                                                   │   └── auth/callback/route.ts
-                                                                                       ├── components/auth/RequireRole.tsx
-                                                                                           └── lib/
-                                                                                                   ├── auth/actions.ts
-                                                                                                           ├── auth/get-current-profile.ts
-                                                                                                                   └── supabase/middleware.ts
+                                                                           6. (Optional but recommended) Add convenience scripts to your `package.json`:
+                                                                              ```json
+                                                                                 "scripts": {
+                                                                                      "import:all": "tsx scripts/import/import-all.ts",
+                                                                                           "import:aircraft": "tsx scripts/import/import-aircraft.ts",
+                                                                                                "import:airports": "tsx scripts/import/import-airports.ts",
+                                                                                                     "import:runways": "tsx scripts/import/import-runways.ts",
+                                                                                                          "import:navaids": "tsx scripts/import/import-navaids.ts"
+                                                                                                             }
+                                                                                                                ```
+                                                                                                                   Then you can just run `npm run import:all`.
+
+                                                                                                                   7. Run the import: `npx tsx scripts/import/import-all.ts` (or `npm run import:all` if you added the scripts above).
+
+                                                                                                                   8. Follow the **Testing Steps** in `MODULE_REPORT.md` to verify the data landed correctly.
+
+                                                                                                                   ## Files in this ZIP
+                                                                                                                   ```
+                                                                                                                   dispatch-desk-v2/
+                                                                                                                   ├── src/lib/supabase/admin.ts
+                                                                                                                   ├── scripts/
+                                                                                                                   │   ├── data/aircraft-seed.json
+                                                                                                                   │   └── import/
+                                                                                                                   │       ├── import-aircraft.ts
+                                                                                                                   │       ├── import-airports.ts
+                                                                                                                   │       ├── import-runways.ts
+                                                                                                                   │       ├── import-navaids.ts
+                                                                                                                   │       └── import-all.ts
+                                                                                                                   └── supabase/migrations/006_module4_constraints.sql
                                                                                                                    MODULE_REPORT.md
                                                                                                                    CHANGELOG.md
                                                                                                                    PROJECT_PROGRESS.md
