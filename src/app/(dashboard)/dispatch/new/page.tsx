@@ -4,19 +4,19 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 const FALLBACK_AIRCRAFT = [
+  { id: "fallback-b77w", model: "Boeing 777-300ER", type_code: "B77W" },
   { id: "fallback-a320", model: "Airbus A320-200", type_code: "A320" },
   { id: "fallback-b738", model: "Boeing 737-800", type_code: "B738" },
-  { id: "fallback-b77w", model: "Boeing 777-300ER", type_code: "B77W" },
   { id: "fallback-a359", model: "Airbus A350-900", type_code: "A359" },
   { id: "fallback-crj9", model: "Bombardier CRJ-900", type_code: "CRJ9" },
 ];
 
 export default function NewDispatchPage() {
   const [aircraftList, setAircraftList] = useState<any[]>(FALLBACK_AIRCRAFT);
-  const [depIcao, setDepIcao] = useState("EGLL");
-  const [arrIcao, setArrIcao] = useState("KJFK");
+  const [depIcao, setDepIcao] = useState("");
+  const [arrIcao, setArrIcao] = useState("");
   const [aircraftId, setAircraftId] = useState("fallback-b77w");
-  const [payloadKg, setPayloadKg] = useState("12000");
+  const [payloadKg, setPayloadKg] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -46,10 +46,10 @@ export default function NewDispatchPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          depIcao,
-          arrIcao,
+          depIcao: depIcao.trim(),
+          arrIcao: arrIcao.trim(),
           aircraftId,
-          payloadKg,
+          payloadKg: payloadKg || "0",
         }),
       });
 
@@ -91,9 +91,10 @@ export default function NewDispatchPage() {
                 type="text"
                 value={depIcao}
                 onChange={(e) => setDepIcao(e.target.value.toUpperCase())}
+                placeholder="e.g. VOBL"
                 required
                 maxLength={4}
-                className="w-full rounded-lg border border-slate-700 bg-slate-800/80 px-3.5 py-2.5 text-sm text-white font-mono uppercase focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                className="w-full rounded-lg border border-slate-700 bg-slate-800/80 px-3.5 py-2.5 text-sm text-white font-mono uppercase focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder:text-slate-600"
               />
             </div>
 
@@ -105,9 +106,10 @@ export default function NewDispatchPage() {
                 type="text"
                 value={arrIcao}
                 onChange={(e) => setArrIcao(e.target.value.toUpperCase())}
+                placeholder="e.g. VABB"
                 required
                 maxLength={4}
-                className="w-full rounded-lg border border-slate-700 bg-slate-800/80 px-3.5 py-2.5 text-sm text-white font-mono uppercase focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                className="w-full rounded-lg border border-slate-700 bg-slate-800/80 px-3.5 py-2.5 text-sm text-white font-mono uppercase focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder:text-slate-600"
               />
             </div>
           </div>
@@ -138,8 +140,9 @@ export default function NewDispatchPage() {
               type="number"
               value={payloadKg}
               onChange={(e) => setPayloadKg(e.target.value)}
+              placeholder="e.g. 12000"
               required
-              className="w-full rounded-lg border border-slate-700 bg-slate-800/80 px-3.5 py-2.5 text-sm text-white font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              className="w-full rounded-lg border border-slate-700 bg-slate-800/80 px-3.5 py-2.5 text-sm text-white font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder:text-slate-600"
             />
           </div>
 
