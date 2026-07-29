@@ -1,61 +1,59 @@
-# Module 2 Report — Database Schema
+# Module 3 Report — Authentication
 
 ## What Was Built
-Full Postgres schema (via 5 SQL migration files) covering:
-- User profiles + global role system (pilot / airline_admin / system_admin)
-- Airlines + many-to-many pilot membership with per-airline roles
-- Aviation reference data: airports, runways, aircraft, navaids, airways (+ waypoints), SID/STAR procedures (+ waypoints)
-- Dispatches (planned flights) and flight_history (actually-flown flights)
-- A `pilot_statistics` view (not a table) for always-accurate stats
-- Row Level Security (RLS) policies on every table
+- Supabase Auth wired into the Next.js app: sign-up, sign-in, sign-out
+- `middleware.ts` — protects `/dashboard`, `/admin`, `/airline` routes; refreshes session on every request
+- Server actions (`signUp`, `signIn`, `signOut`) instead of client-side API calls
+- `getCurrentProfile()` / `getAirlineRole()` — central helpers for "who is this and what can they do"
+- `RequireRole` — server component that gates content by global role
+- Email confirmation callback route
+- Login/signup pages and an example protected dashboard page demonstrating role-based rendering
 
 ## Why Designed This Way
 
-**Profiles separate from auth.users**
-Supabase manages `auth.users` internally — we never extend it directly. Instead, `profiles` is a 1:1 shadow table holding app-specific fields, auto-created via a trigger when someone signs up. This is the standard, safe Supabase pattern.
+**Server Actions, not client-side fetch to API routes**
+Next.js Server Actions run on the server and set auth cookies directly in the response. A client-side `fetch()` to a custom `/api/login` route can end up with the session cookie not syncing properly between client and server renders — a very common Next.js + Supabase bug. Server Actions avoid that whole class of problem.
 
-**Global role vs. airline role are separate**
-`profiles.role` answers "what can this person do platform-wide" (e.g., is this a system_admin?). `airline_members.role` answers "what can this person do within *this specific airline*" (member vs admin). A pilot's global role is `pilot` but they might be an `admin` of one airline and a plain `member` of another — these needed to be independent.
+**Middleware split into two files**
+`src/lib/supabase/middleware.ts` only refreshes the session token. `middleware.ts` (root) only decides which routes require auth and redirects if missing. Keeping "refresh session" and "enforce access" separate means either can be changed (e.g., adding a new protected route) without touching the trickier cookie-handling code.
 
-**Reference data is public read-only**
-Airports, aircraft, navaids, etc. are shared infrastructure, not owned by any pilot or airline. Everyone can read them; only `system_admin` can write (via the data import pipeline planned for Module 4). This matches how SimBrief-style platforms treat aviation data — a shared public resource.
+**Route protection list is one array, not scattered checks**
+`PROTECTED_PREFIXES` in `middleware.ts` is the single place that defines what's gated. As the app grows to 15+ more modules, anyone (including future-you, or ChatGPT in another session) can read one file to know what's protected — rather than hunting through every page for an `if (!user) redirect()` check.
 
-**Dispatches vs. flight_history are separate tables**
-A dispatch (flight plan) can exist and never be flown — that's normal and shouldn't be conflated with "did the flight happen." `flight_history` only exists for dispatches that were actually flown, and carries fields (actual times, landing rate) that don't make sense on an unflown plan.
+**RequireRole is a server component, not a client hook**
+A `useRole()` client-side hook can be bypassed by anyone who disables JS or inspects/edits browser state — it would only be a UI convenience, not real security (the real security is still RLS from Module 2). By making `RequireRole` a server component, gated content is never sent to the browser at all if the role doesn't match, which is both more secure and avoids a "flash of admin content" bug.
 
-**Statistics as a view, not a table**
-Storing pre-computed stats risks them going stale if flight_history changes. A view recalculates live from `flight_history` on every query — always correct, and simpler than maintaining triggers to keep a stats table in sync. If this becomes a performance bottleneck at scale, it can be converted to a materialized view with a refresh schedule later — noted as technical debt below.
-
-**RLS as default-deny**
-Every table has RLS enabled with no implicit access — policies must explicitly grant it. For a public multi-tenant platform, this means a bug in the Next.js app code (e.g., forgetting a `.eq('pilot_id', ...)` filter) still can't leak another pilot's private dispatch data, because the database itself blocks it regardless of what the app queries for.
+**Global role vs. airline role checked separately**
+`getCurrentProfile()` returns the global role (from Module 2's `profiles.role`). `getAirlineRole(airlineId)` is a separate lookup for the airline-specific role, matching the Module 2 decision to keep these two concepts independent.
 
 ## Packages Installed
-None new this module — pure SQL migrations, no additional npm packages.
+None new — this module only uses `@supabase/ssr` and `@supabase/supabase-js`, already installed in Module 1.
 
 ## Database Changes
-5 migration files added under `supabase/migrations/`:
-1. `001_profiles.sql` — profiles, user_role enum, auto-create-on-signup trigger
-2. `002_airlines.sql` — airlines, airline_members, airline_member_role enum
-3. `003_aviation_reference_data.sql` — airports, runways, aircraft, navaids, airways, airway_waypoints, procedures, procedure_waypoints
-4. `004_dispatches_and_history.sql` — dispatches, flight_history, dispatch_status enum, pilot_statistics view
-5. `005_rls_policies.sql` — RLS enabled + policies on all tables, plus `is_system_admin()` and `is_airline_admin()` helper functions
+None — Module 3 uses the `profiles` and `airline_members` tables from Module 2 as-is. No new migrations.
 
 ## Environment Variables
-No new variables this module (still just the two Supabase keys from Module 1).
+One new variable:
+```
+NEXT_PUBLIC_SITE_URL=https://your-deployed-url.vercel.app
+```
+Used for the email confirmation redirect link. Set this in both `.env.local` (use `http://localhost:3000` or your Codespaces forwarded URL for local testing) and in Vercel's environment variables (use your real production URL).
 
 ## Testing Steps
-1. In Supabase SQL Editor (or via CLI `supabase db push`), run migrations 001 → 005 in order.
-2. Sign up a test user via Supabase Auth → confirm a matching row auto-appears in `profiles`.
-3. As that user, try `select * from profiles` — should return all profiles (public read).
-4. Try `update profiles set full_name = 'Test' where id != auth.uid()` — should affect 0 rows (blocked by RLS).
-5. Insert a test airline with your `owner_id`, confirm you can update it, confirm a different user cannot.
-6. Insert a dispatch as your pilot_id, confirm another test user cannot see or edit it unless they're an airline_admin for that dispatch's airline.
-7. Manually insert a flight_history row and query `select * from pilot_statistics where pilot_id = '...'` — confirm numbers match.
+1. Add `NEXT_PUBLIC_SITE_URL` to your env vars (see above).
+2. Go to `/signup`, create an account with a real email you can check.
+3. Confirm a row appears in Supabase Auth → Users, and a matching row in `profiles` (auto-created by the Module 2 trigger).
+4. Click the confirmation link in your email — you should land on `/dashboard` with a session.
+5. Try visiting `/dashboard` in an incognito/private tab (no session) — should redirect to `/login?redirectTo=/dashboard`.
+6. Log in on that private tab — should redirect back to `/dashboard` automatically.
+7. Click "Sign out" — should return you to `/login`, and `/dashboard` should redirect again if revisited.
+8. Manually set your test user's `profiles.role` to `system_admin` in Supabase Table Editor, refresh `/dashboard` — the "System admin tools" block should now appear.
 
 ## What's Next
-**Module 3: Authentication** — wiring up Supabase Auth in the Next.js app itself: sign-up/login/logout flows, session middleware, protected routes, and role-based UI (pilot vs airline_admin vs system_admin views).
+**Module 4: Aviation Data Import** — populating the empty reference tables from Module 2 (airports, aircraft, navaids, airways, SIDs/STARs, runways) from an open aviation dataset, plus the import pipeline itself (likely a Supabase Edge Function or a one-time seed script).
 
 ## Technical Debt / Notes
-- `pilot_statistics` is a plain view; fine at current scale, but should become a materialized view (with a refresh job) if pilot counts get large enough that live aggregation slows down.
-- Aviation reference data tables are empty — actual airport/aircraft/navdata import is Module 4, likely sourced from an open aviation dataset.
-- No soft-delete pattern yet (deletes are hard deletes via cascade). Worth revisiting before Module 9 (dispatch history) if audit trails matter.
+- Login/signup forms use plain Tailwind-styled inputs, not shadcn/ui `<Input>`/`<Button>` components — this was intentional so the files work standalone without depending on exactly which shadcn components you've generated locally. Safe to swap in shadcn components later for visual consistency once your design references are in.
+- No "forgot password" flow yet — worth adding alongside Module 9 (pilot dashboard) or sooner if needed.
+- No rate-limiting on sign-in attempts yet — worth revisiting in the security hardening pass (Module 17).
+- OAuth (Google/Discord sign-in) not included — email/password only for now; can be added later with minimal changes to the actions file.
