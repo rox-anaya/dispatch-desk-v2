@@ -76,23 +76,33 @@ export default async function DispatchResultPage({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4">
           <a
             href={`/api/dispatch/result/fpl?dep=${depIcao}&arr=${arrIcao}`}
-            className="rounded-lg bg-blue-600 hover:bg-blue-500 py-3 text-center text-sm font-semibold text-white shadow-lg transition-all"
+            className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-500 py-3 text-sm font-semibold text-white shadow-lg transition-all"
           >
-            Download .FPL 🛰️
+            <svg className="w-4 h-4 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            </svg>
+            Download .FPL
           </a>
           <a
             href={`/api/dispatch/result/kml?dep=${depIcao}&arr=${arrIcao}`}
-            className="rounded-lg bg-emerald-600 hover:bg-emerald-500 py-3 text-center text-sm font-semibold text-white shadow-lg transition-all"
+            className="flex items-center justify-center gap-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 py-3 text-sm font-semibold text-white shadow-lg transition-all"
           >
-            Download KML 🌍
+            <svg className="w-4 h-4 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="9" strokeWidth="2" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12h18M12 3a15.3 15.3 0 014 9 15.3 15.3 0 01-4 9 15.3 15.3 0 01-4-9 15.3 15.3 0 014-9z" />
+            </svg>
+            Download KML
           </a>
           <a
             href={`https://www.simbrief.com/system/dispatch.php?orig=${depIcao}&dest=${arrIcao}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-lg bg-indigo-600 hover:bg-indigo-500 py-3 text-center text-sm font-semibold text-white shadow-lg transition-all"
+            className="flex items-center justify-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 py-3 text-sm font-semibold text-white shadow-lg transition-all"
           >
-            SimBrief ✈️
+            <svg className="w-4 h-4 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            </svg>
+            SimBrief
           </a>
         </div>
 
