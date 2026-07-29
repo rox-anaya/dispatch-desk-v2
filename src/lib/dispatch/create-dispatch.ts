@@ -1,27 +1,56 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getAirportByIcao, getAircraftById } from "@/lib/data/lookups";
+import { getAirportByIcao } from "@/lib/data/lookups";
 import { calculateFlightPlan } from "./calculations";
 import { redirect } from "next/navigation";
 
 export async function createDispatchAction(formData: FormData): Promise<void> {
-  const depIcao = formData.get("depIcao") as string;
-  const arrIcao = formData.get("arrIcao") as string;
-  const aircraftId = formData.get("aircraftId") as string;
+  const depIcao = (formData.get("depIcao") as string)?.toUpperCase();
+  const arrIcao = (formData.get("arrIcao") as string)?.toUpperCase();
+  let aircraftId = formData.get("aircraftId") as string;
   const payloadKg = parseFloat((formData.get("payloadKg") as string) || "0");
 
   if (!depIcao || !arrIcao || !aircraftId) {
-    throw new Error("Departure, Arrival, and Aircraft are required.");
+    throw new Error("Departure ICAO, Arrival ICAO, and Aircraft Selection are required.");
+  }
+
+  const supabase = createAdminClient();
+
+  // If a fallback ID was passed, find the real DB aircraft record by type code
+  if (aircraftId.startsWith("fallback-")) {
+    const typeCodeMap: Record<string, string> = {
+      "fallback-a320": "A320",
+      "fallback-b738": "B738",
+      "fallback-b77w": "B77W",
+      "fallback-a359": "A359",
+      "fallback-crj9": "CRJ9",
+    };
+    const code = typeCodeMap[aircraftId] || "B77W";
+    const { data: matched } = await supabase
+      .from("aircraft")
+      .select("*")
+      .eq("type_code", code)
+      .single();
+
+    if (matched) {
+      aircraftId = matched.id;
+    }
   }
 
   const depAirport = await getAirportByIcao(depIcao);
   const arrAirport = await getAirportByIcao(arrIcao);
-  const aircraft = await getAircraftById(aircraftId);
 
-  if (!depAirport) throw new Error(`Departure airport ${depIcao.toUpperCase()} not found.`);
-  if (!arrAirport) throw new Error(`Arrival airport ${arrIcao.toUpperCase()} not found.`);
-  if (!aircraft) throw new Error("Selected aircraft not found.");
+  if (!depAirport) throw new Error(`Departure airport ${depIcao} not found in database.`);
+  if (!arrAirport) throw new Error(`Arrival airport ${arrIcao} not found in database.`);
+
+  const { data: aircraft } = await supabase
+    .from("aircraft")
+    .select("*")
+    .eq("id", aircraftId)
+    .single();
+
+  if (!aircraft) throw new Error("Selected aircraft model could not be found in database.");
 
   const calculations = calculateFlightPlan({
     depLat: depAirport.latitude,
@@ -37,7 +66,6 @@ export async function createDispatchAction(formData: FormData): Promise<void> {
     payloadKg,
   });
 
-  const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("dispatches")
     .insert({
@@ -59,7 +87,7 @@ export async function createDispatchAction(formData: FormData): Promise<void> {
     .single();
 
   if (error || !data) {
-    throw new Error(`Failed to save dispatch: ${error?.message}`);
+    throw new Error(`Failed to save dispatch release: ${error?.message}`);
   }
 
   redirect(`/dispatch/${data.id}`);
