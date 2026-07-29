@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { createDispatchAction } from "@/lib/dispatch/create-dispatch";
 
 const FALLBACK_AIRCRAFT = [
   { id: "fallback-a320", model: "Airbus A320-200", type_code: "A320" },
@@ -13,38 +12,59 @@ const FALLBACK_AIRCRAFT = [
 ];
 
 export default function NewDispatchPage() {
-  const [aircraftList, setAircraftList] = useState<any[]>([]);
-  const [depIcao, setDepIcao] = useState("");
-  const [arrIcao, setArrIcao] = useState("");
+  const [aircraftList, setAircraftList] = useState<any[]>(FALLBACK_AIRCRAFT);
+  const [depIcao, setDepIcao] = useState("EGLL");
+  const [arrIcao, setArrIcao] = useState("KJFK");
+  const [aircraftId, setAircraftId] = useState("fallback-b77w");
+  const [payloadKg, setPayloadKg] = useState("12000");
   const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     async function loadAircraft() {
       try {
         const supabase = createClient();
-        const { data, error } = await supabase.from("aircraft").select("*").order("model");
+        const { data } = await supabase.from("aircraft").select("*").order("model");
         if (data && data.length > 0) {
           setAircraftList(data);
-        } else {
-          setAircraftList(FALLBACK_AIRCRAFT);
+          setAircraftId(data[0].id);
         }
       } catch (err) {
-        setAircraftList(FALLBACK_AIRCRAFT);
+        // Keeps fallback list active
       }
     }
     loadAircraft();
   }, []);
 
-  function handleSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
     setError(null);
-    startTransition(async () => {
-      try {
-        await createDispatchAction(formData);
-      } catch (err: any) {
-        setError(err?.message || "Failed to generate dispatch release.");
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/dispatch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          depIcao,
+          arrIcao,
+          aircraftId,
+          payloadKg,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        setError(data.error || "Failed to generate dispatch.");
+      } else if (data.redirectUrl) {
+        window.location.href = data.redirectUrl;
       }
-    });
+    } catch (err: any) {
+      setError(err?.message || "A network error occurred. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -61,21 +81,19 @@ export default function NewDispatchPage() {
           </div>
         )}
 
-        <form action={handleSubmit} className="space-y-5 rounded-2xl border border-slate-800 bg-slate-900/60 p-6 backdrop-blur shadow-2xl">
+        <form onSubmit={handleSubmit} className="space-y-5 rounded-2xl border border-slate-800 bg-slate-900/60 p-6 backdrop-blur shadow-2xl">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
                 Departure ICAO
               </label>
               <input
-                name="depIcao"
                 type="text"
-                placeholder="EGLL"
                 value={depIcao}
                 onChange={(e) => setDepIcao(e.target.value.toUpperCase())}
                 required
                 maxLength={4}
-                className="w-full rounded-lg border border-slate-700 bg-slate-800/80 px-3.5 py-2.5 text-sm text-white font-mono placeholder:text-slate-500 uppercase focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full rounded-lg border border-slate-700 bg-slate-800/80 px-3.5 py-2.5 text-sm text-white font-mono uppercase focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
               />
             </div>
 
@@ -84,14 +102,12 @@ export default function NewDispatchPage() {
                 Arrival ICAO
               </label>
               <input
-                name="arrIcao"
                 type="text"
-                placeholder="KJFK"
                 value={arrIcao}
                 onChange={(e) => setArrIcao(e.target.value.toUpperCase())}
                 required
                 maxLength={4}
-                className="w-full rounded-lg border border-slate-700 bg-slate-800/80 px-3.5 py-2.5 text-sm text-white font-mono placeholder:text-slate-500 uppercase focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full rounded-lg border border-slate-700 bg-slate-800/80 px-3.5 py-2.5 text-sm text-white font-mono uppercase focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
               />
             </div>
           </div>
@@ -101,11 +117,11 @@ export default function NewDispatchPage() {
               Aircraft Model
             </label>
             <select
-              name="aircraftId"
+              value={aircraftId}
+              onChange={(e) => setAircraftId(e.target.value)}
               required
-              className="w-full rounded-lg border border-slate-700 bg-slate-800/80 px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              className="w-full rounded-lg border border-slate-700 bg-slate-800/80 px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
             >
-              <option value="" className="bg-slate-900 text-slate-400">Select Aircraft...</option>
               {aircraftList.map((ac) => (
                 <option key={ac.id} value={ac.id} className="bg-slate-900 text-white">
                   {ac.model} ({ac.type_code})
@@ -119,21 +135,20 @@ export default function NewDispatchPage() {
               Payload (kg)
             </label>
             <input
-              name="payloadKg"
               type="number"
-              placeholder="12000"
-              defaultValue={12000}
+              value={payloadKg}
+              onChange={(e) => setPayloadKg(e.target.value)}
               required
-              className="w-full rounded-lg border border-slate-700 bg-slate-800/80 px-3.5 py-2.5 text-sm text-white font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              className="w-full rounded-lg border border-slate-700 bg-slate-800/80 px-3.5 py-2.5 text-sm text-white font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
             />
           </div>
 
           <button
             type="submit"
-            disabled={isPending}
+            disabled={loading}
             className="w-full rounded-lg bg-blue-600 hover:bg-blue-500 active:bg-blue-700 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/25 transition-all disabled:opacity-50"
           >
-            {isPending ? "Calculating Flight Plan..." : "Generate Dispatch"}
+            {loading ? "Calculating Flight Plan..." : "Generate Dispatch"}
           </button>
         </form>
       </div>
