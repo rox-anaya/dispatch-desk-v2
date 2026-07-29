@@ -1,10 +1,8 @@
 import Link from "next/link";
 import WeatherPanel from "@/components/weather/WeatherPanel";
-import dynamic from "next/dynamic";
+import RouteMap from "@/components/dispatch/RouteMap";
 
-const RouteMap = dynamic(() => import("@/components/dispatch/RouteMap"), { ssr: false });
-
-export const dynamicMode = "force-dynamic";
+export const dynamic = "force-dynamic";
 
 export default async function DispatchResultPage({
   searchParams,
