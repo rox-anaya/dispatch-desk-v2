@@ -13,11 +13,11 @@ export default async function DispatchResultPage({
   const depIcao = params.dep || "VOBL";
   const arrIcao = params.arr || "VABB";
   const model = params.model || "Boeing 777-300ER";
-  const distance = params.dist ? parseFloat(params.dist) : 500;
-  const cruiseAlt = params.alt ? `FL${Math.round(parseFloat(params.alt) / 100)}` : "FL370";
-  const blockTime = params.time ? parseFloat(params.time) : 1.5;
-  const totalFuel = params.fuel ? parseFloat(params.fuel) : 15000;
-  const tow = params.tow ? parseFloat(params.tow) : 200000;
+  const distance = params.dist ? parseFloat(params.dist) : 450;
+  const cruiseAlt = params.alt ? `FL${Math.round(parseFloat(params.alt) / 100)}` : "FL360";
+  const blockTime = params.time ? parseFloat(params.time) : 1.32;
+  const totalFuel = params.fuel ? parseFloat(params.fuel) : 12541;
+  const tow = params.tow ? parseFloat(params.tow) : 192370;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-6 flex flex-col items-center py-12">
@@ -73,18 +73,33 @@ export default async function DispatchResultPage({
           <p className="font-mono text-sm text-blue-300 break-all">{depIcao} DCT {arrIcao}</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4">
+          <a
+            href={`/api/dispatch/result/fpl?dep=${depIcao}&arr=${arrIcao}`}
+            className="rounded-lg bg-blue-600 hover:bg-blue-500 py-3 text-center text-sm font-semibold text-white shadow-lg transition-all"
+          >
+            Download .FPL 🛰️
+          </a>
+          <a
+            href={`/api/dispatch/result/kml?dep=${depIcao}&arr=${arrIcao}`}
+            className="rounded-lg bg-emerald-600 hover:bg-emerald-500 py-3 text-center text-sm font-semibold text-white shadow-lg transition-all"
+          >
+            Download KML 🌍
+          </a>
           <a
             href={`https://www.simbrief.com/system/dispatch.php?orig=${depIcao}&dest=${arrIcao}`}
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-lg bg-indigo-600 hover:bg-indigo-500 py-3 text-center text-sm font-semibold text-white shadow-lg transition-all"
           >
-            Export / Load in SimBrief ✈️
+            SimBrief ✈️
           </a>
+        </div>
+
+        <div className="pt-2">
           <Link
             href="/dispatch/new"
-            className="rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 py-3 text-center text-sm font-semibold text-slate-200 transition-all"
+            className="block w-full rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 py-3 text-center text-sm font-semibold text-slate-200 transition-all"
           >
             ← Generate Another Flight
           </Link>
