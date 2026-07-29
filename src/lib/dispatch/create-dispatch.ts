@@ -5,23 +5,23 @@ import { getAirportByIcao, getAircraftById } from "@/lib/data/lookups";
 import { calculateFlightPlan } from "./calculations";
 import { redirect } from "next/navigation";
 
-export async function createDispatchAction(formData: FormData) {
+export async function createDispatchAction(formData: FormData): Promise<void> {
   const depIcao = formData.get("depIcao") as string;
   const arrIcao = formData.get("arrIcao") as string;
   const aircraftId = formData.get("aircraftId") as string;
-  const payloadKg = parseFloat(formData.get("payloadKg") as string || "0");
+  const payloadKg = parseFloat((formData.get("payloadKg") as string) || "0");
 
   if (!depIcao || !arrIcao || !aircraftId) {
-    return { error: "Departure, Arrival, and Aircraft are required." };
+    throw new Error("Departure, Arrival, and Aircraft are required.");
   }
 
   const depAirport = await getAirportByIcao(depIcao);
   const arrAirport = await getAirportByIcao(arrIcao);
   const aircraft = await getAircraftById(aircraftId);
 
-  if (!depAirport) return { error: `Departure airport ${depIcao.toUpperCase()} not found.` };
-  if (!arrAirport) return { error: `Arrival airport ${arrIcao.toUpperCase()} not found.` };
-  if (!aircraft) return { error: "Selected aircraft not found." };
+  if (!depAirport) throw new Error(`Departure airport ${depIcao.toUpperCase()} not found.`);
+  if (!arrAirport) throw new Error(`Arrival airport ${arrIcao.toUpperCase()} not found.`);
+  if (!aircraft) throw new Error("Selected aircraft not found.");
 
   const calculations = calculateFlightPlan({
     depLat: depAirport.latitude,
@@ -59,7 +59,7 @@ export async function createDispatchAction(formData: FormData) {
     .single();
 
   if (error || !data) {
-    return { error: `Failed to save dispatch: ${error?.message}` };
+    throw new Error(`Failed to save dispatch: ${error?.message}`);
   }
 
   redirect(`/dispatch/${data.id}`);

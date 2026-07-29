@@ -1,34 +1,8 @@
-"use client";
-
-import { useState, useEffect } from "react";
+import { getAllAircraft } from "@/lib/data/lookups";
 import { createDispatchAction } from "@/lib/dispatch/create-dispatch";
-import { createClient } from "@/lib/supabase/client";
 
-export default function NewDispatchPage() {
-  const [aircraftList, setAircraftList] = useState<any[]>([]);
-  const [depIcao, setDepIcao] = useState("");
-  const [arrIcao, setArrIcao] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    async function loadAircraft() {
-      const supabase = createClient();
-      const { data, error } = await supabase.from("aircraft").select("*").order("model");
-      if (data) setAircraftList(data);
-    }
-    loadAircraft();
-  }, []);
-
-  async function handleSubmit(formData: FormData) {
-    setLoading(true);
-    setError(null);
-    const result = await createDispatchAction(formData);
-    if (result?.error) {
-      setError(result.error);
-      setLoading(false);
-    }
-  }
+export default async function NewDispatchPage() {
+  const aircraftList = await getAllAircraft();
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-6 flex flex-col items-center justify-center">
@@ -38,13 +12,7 @@ export default function NewDispatchPage() {
           <p className="text-sm text-slate-400 mt-1">Generate automated flight plan calculations and weights</p>
         </div>
 
-        {error && (
-          <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-4 text-sm text-red-400">
-            {error}
-          </div>
-        )}
-
-        <form action={handleSubmit} className="space-y-5 rounded-2xl border border-slate-800 bg-slate-900/60 p-6 backdrop-blur shadow-2xl">
+        <form action={createDispatchAction} className="space-y-5 rounded-2xl border border-slate-800 bg-slate-900/60 p-6 backdrop-blur shadow-2xl">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
@@ -54,11 +22,9 @@ export default function NewDispatchPage() {
                 name="depIcao"
                 type="text"
                 placeholder="EGLL"
-                value={depIcao}
-                onChange={(e) => setDepIcao(e.target.value.toUpperCase())}
                 required
                 maxLength={4}
-                className="w-full rounded-lg border border-slate-700 bg-slate-800/80 px-3.5 py-2.5 text-sm text-white font-mono placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full rounded-lg border border-slate-700 bg-slate-800/80 px-3.5 py-2.5 text-sm text-white font-mono placeholder:text-slate-500 uppercase focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               />
             </div>
 
@@ -70,11 +36,9 @@ export default function NewDispatchPage() {
                 name="arrIcao"
                 type="text"
                 placeholder="KJFK"
-                value={arrIcao}
-                onChange={(e) => setArrIcao(e.target.value.toUpperCase())}
                 required
                 maxLength={4}
-                className="w-full rounded-lg border border-slate-700 bg-slate-800/80 px-3.5 py-2.5 text-sm text-white font-mono placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full rounded-lg border border-slate-700 bg-slate-800/80 px-3.5 py-2.5 text-sm text-white font-mono placeholder:text-slate-500 uppercase focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               />
             </div>
           </div>
@@ -113,10 +77,9 @@ export default function NewDispatchPage() {
 
           <button
             type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-blue-600 hover:bg-blue-500 active:bg-blue-700 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/25 transition-all disabled:opacity-50"
+            className="w-full rounded-lg bg-blue-600 hover:bg-blue-500 active:bg-blue-700 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/25 transition-all"
           >
-            {loading ? "Calculating & Generating..." : "Generate Dispatch"}
+            Generate Dispatch
           </button>
         </form>
       </div>
