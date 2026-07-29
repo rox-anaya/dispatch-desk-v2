@@ -10,16 +10,17 @@ interface RouteMapProps {
 }
 
 const AIRPORT_COORDS: Record<string, [number, number]> = {
-  VOBL: [13.1979, 77.7063],
-  VABB: [19.0887, 72.8679],
-  OMDB: [25.2532, 55.3657],
-  EGLL: [51.4700, -0.4543],
-  KJFK: [40.6413, -73.7781],
-  WSSS: [1.3644, 103.9915],
-  VIDP: [28.5562, 77.1000],
-  VOMM: [13.0827, 80.2707],
-  EDDF: [50.0333, 8.5706],
-  LFPG: [49.0097, 2.5479],
+  VOBL: [13.1979, 77.7063], // Bengaluru
+  VABB: [19.0887, 72.8679], // Mumbai
+  OMDB: [25.2532, 55.3657], // Dubai
+  EGLL: [51.4700, -0.4543], // London Heathrow
+  KJFK: [40.6413, -73.7781], // New York JFK
+  KMIA: [25.7953, -80.2901], // Miami, Florida, USA
+  WSSS: [1.3644, 103.9915], // Singapore Changi
+  VIDP: [28.5562, 77.1000], // New Delhi
+  VOMM: [13.0827, 80.2707], // Chennai
+  EDDF: [50.0333, 8.5706],  // Frankfurt
+  LFPG: [49.0097, 2.5479],  // Paris Charles de Gaulle
 };
 
 export default function RouteMap({ depIcao, arrIcao }: RouteMapProps) {
@@ -49,7 +50,7 @@ export default function RouteMap({ depIcao, arrIcao }: RouteMapProps) {
       const map = L.map(mapRef.current, {
         zoomControl: true,
         attributionControl: false,
-      }).setView([centerLat, centerLon], 4);
+      }).setView([centerLat, centerLon], 3);
 
       L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         maxZoom: 19,
