@@ -1,8 +1,19 @@
 import { getAllAircraft } from "@/lib/data/lookups";
 import { createDispatchAction } from "@/lib/dispatch/create-dispatch";
 
+export const dynamic = "force-dynamic";
+
+const FALLBACK_AIRCRAFT = [
+  { id: "a320-default", model: "Airbus A320-200", type_code: "A320" },
+  { id: "b738-default", model: "Boeing 737-800", type_code: "B738" },
+  { id: "b77w-default", model: "Boeing 777-300ER", type_code: "B77W" },
+  { id: "a359-default", model: "Airbus A350-900", type_code: "A359" },
+  { id: "crj9-default", model: "Bombardier CRJ-900", type_code: "CRJ9" },
+];
+
 export default async function NewDispatchPage() {
-  const aircraftList = await getAllAircraft();
+  const dbAircraft = await getAllAircraft();
+  const aircraftList = dbAircraft && dbAircraft.length > 0 ? dbAircraft : FALLBACK_AIRCRAFT;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-6 flex flex-col items-center justify-center">
