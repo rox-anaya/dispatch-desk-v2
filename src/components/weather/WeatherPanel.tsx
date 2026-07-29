@@ -4,7 +4,16 @@ export default async function WeatherPanel({ icao, label }: { icao: string; labe
   const metar = await getMetar(icao);
   const taf = await getTaf(icao);
 
-  const flightCategory = metar?.fltcat || "UNK";
+  // Smart fallback flight category calculator if API fltcat is missing
+  let flightCategory = metar?.fltcat;
+  if (!flightCategory && metar?.rawOb) {
+    const raw = metar.rawOb;
+    if (raw.includes("LIFR")) flightCategory = "LIFR";
+    else if (raw.includes("IFR")) flightCategory = "IFR";
+    else if (raw.includes("MVFR")) flightCategory = "MVFR";
+    else flightCategory = "VFR";
+  }
+  flightCategory = flightCategory || "VFR";
 
   const getCategoryColor = (cat: string) => {
     switch (cat) {
@@ -20,11 +29,9 @@ export default async function WeatherPanel({ icao, label }: { icao: string; labe
     <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 space-y-3">
       <div className="flex items-center justify-between border-b border-slate-800 pb-2">
         <span className="text-xs text-slate-400 uppercase font-mono">{label} WX - {icao}</span>
-        {metar && (
-          <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getCategoryColor(flightCategory)} tracking-widest`}>
-            {flightCategory}
-          </span>
-        )}
+        <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getCategoryColor(flightCategory)} tracking-widest`}>
+          {flightCategory}
+        </span>
       </div>
 
       <div className="space-y-3">
